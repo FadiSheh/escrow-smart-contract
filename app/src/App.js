@@ -7,8 +7,19 @@ import Escrow from './Escrow'
 const provider = new ethers.providers.Web3Provider(window.ethereum)
 
 export async function approve (escrowContract, signer) {
-  const approveTxn = await escrowContract.connect(signer).approve()
-  await approveTxn.wait()
+  try {
+    const approveTxn = await escrowContract.connect(signer).approve()
+    await approveTxn.wait()
+  } catch (error) {
+    if (
+      error.transaction &&
+      error.transaction.from !== escrowContract.arbiter
+    ) {
+      alert('WRONG ARBITER')
+    } else {
+      console.error(error)
+    }
+  }
 }
 
 function App () {
@@ -42,6 +53,7 @@ function App () {
     const arbiter = document.getElementById('arbiter').value
     const value = ethers.utils.parseEther(document.getElementById('wei').value)
     const escrowContract = await deploy(signer, arbiter, beneficiary, value)
+    console.log(escrowContract)
 
     const escrow = {
       from: signer,
